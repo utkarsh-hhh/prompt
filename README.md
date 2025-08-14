@@ -61,17 +61,17 @@ This n8n workflow is an automated news curation and digest system that processes
 | Node Name | Type | Purpose |
 |-----------|------|---------|
 | workflow 2 | Schedule Trigger | Daily automation trigger |
-| If1 | If Node | Day-based routing logic |
-| Execute a SQL query4 | Postgres | Daily news retrieval |
-| Execute a SQL query7 | Postgres | Weekly news retrieval |
+| If | If Node | Day-based routing logic |
+| Execute a SQL query | Postgres | Daily news retrieval |
+| Execute a SQL query | Postgres | Weekly news retrieval |
 | daily/weekly | Set Node | Data assignment |
-| AI Agent1 | Langchain Agent | News curation |
+| AI Agent | Langchain Agent | News curation |
 | Groq Chat Model | LLM | AI processing |
 | Structured Output Parser | Parser | JSON formatting |
-| HTTP Request1 | HTTP | Source URL fetching |
-| Code3 | JavaScript | Image URL extraction |
-| Code2 | JavaScript | Email HTML generation |
-| Send a message1 | Gmail | Email delivery |
+| HTTP Request | HTTP | Source URL fetching |
+| Code | JavaScript | Image URL extraction |
+| Code | JavaScript | Email HTML generation |
+| Send a message | Gmail | Email delivery |
 
 ## Data Flow
 1. **Trigger**: Daily at 5 AM
