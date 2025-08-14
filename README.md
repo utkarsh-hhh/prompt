@@ -18,7 +18,7 @@ This n8n workflow is an automated news curation and digest system that processes
 ### Database Operations
 
 #### Daily Query
-``` SELECT * FROM news WHERE keep = true AND date = CURRENT_DATE;``
+``` SELECT * FROM news WHERE keep = true AND date = CURRENT_DATE;``1
 
 
 #### Weekly Query  
