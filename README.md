@@ -1,4 +1,4 @@
-# My Workflow 2 - n8n Automation Documentation
+# Workflow 2 - n8n Automation Documentation
 
 ## Overview
 This n8n workflow is an automated news curation and digest system that processes news articles from a database, uses AI to curate content, and sends formatted email digests.
