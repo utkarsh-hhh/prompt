@@ -1,0 +1,428 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ac7c0c7c-7288-43f3-921d-b17dc9034b36",
+              "leftValue": "={{$now.format('d')}}",
+              "rightValue": "5",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        128
+      ],
+      "id": "05818e7f-df42-43b4-9a71-6fc4362a94ad",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        128
+      ],
+      "id": "3a859f63-7455-40aa-a992-1c11e06bbca1",
+      "name": "workflow 2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1c7a5129-2808-43a8-8e25-30826c08cd21",
+              "name": "daily",
+              "value": "={{ $json.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        256
+      ],
+      "id": "dc1d8f39-6dd6-4ee6-882b-fb1987f4633a",
+      "name": "daily"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM news WHERE keep = true AND date >= CURRENT_DATE - INTERVAL '7 days';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        48
+      ],
+      "id": "759aaf2c-1a5d-4779-9c8a-dda1a2e47386",
+      "name": "Execute a SQL query7",
+      "credentials": {
+        "postgres": {
+          "id": "Qzxa2iJP4glR5sg0",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4318d94e-54d5-4954-9952-c698431ea366",
+              "name": "weekly",
+              "value": "={{ $json.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        48
+      ],
+      "id": "d014efe3-8c18-4b25-b05a-196894806350",
+      "name": "weekly"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an award-winning tech journalist.\nReturn a JSON object:\nheadline– ≤90 chars, Title Case\ndigest– ≤280 chars plain text\nsource_line– \n[text]\n(url)\ninsights\n– 3 lines, each starts with 💡 and is italic No extra keys, no markdown outside fields.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an executive news curator.\nInput = array of article objects\n({{ $json.id }},{{ $json.title }},{{ $json.summary }},{{ $json.link }},{{ $json.date }},{{ $json.importance_score }},{{ $json.virality_score }},{{ $json.novelty_score }}).\n1. score = 0.5*importance + 0.3*virality + 0.2*(novelty or\n6)\n2. Assign one best-fit category (see list).\n3. Sort by score desc, return top 7.\n\nOutput = JSON array\n(id,title,link,summary,date,source,category,\nimportance_score,virality_score).\nCategories:\n1 AI Research & Breakthroughs\n2 Product Releases & Updates\n3 Venture Capital & M&A\n4 Corporate Strategy & Partnerships5 Policy, Regulation & Governance\n6 Ethics, Safety & Responsible AI\n7 Cybersecurity & Privacy\n8 Hardware & Infrastructure\n9 Front-line Applications & Case Studies\n10 Drone Defence & Uncrewed Systems"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        944,
+        144
+      ],
+      "id": "1eb8fb7b-80a6-4635-ba50-a05d0f78d10e",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        944,
+        416
+      ],
+      "id": "bb031e5f-c892-497b-8375-03ff1bbf7a52",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "rwxNdZp1GgXb8SGW",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.output.source_line }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        144
+      ],
+      "id": "fecc9a33-5564-4208-bd40-87830b4f51e2",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Access the HTML data from the current item's JSON property.\nconst html = item.json.data;\n\n// Define the regular expression to find the og:image URL.\n// The order of attributes has been swapped to match the source HTML.\nconst regex = /<meta content=\"([^\"]+)\" property=\"og:image\"/;\n\n// Find the match in the HTML string.\nconst match = html.match(regex);\n\n// The URL is the first captured group (at index 1).\nconst imageUrl = match ? match[1] : null;\n\n// Return the extracted URL in a new object.\nreturn {\n  extractedUrl: imageUrl\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        144
+      ],
+      "id": "89d1e2df-c401-4bde-8dba-779e5be15e8e",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"headline\": \"Meta's New AI Can Read Your Mind Before You Act\",\n  \"digest\": \"Meta's FAIR team has developed an AI that can predict your brain's activity from video footage, without needing a direct brain scan. This breakthrough in decoding brain activity could revolutionize human-computer interfaces and raises significant ethical questions.\",\n  \"source_line\": \"[The Rundown](https://www.therundown.ai/p/metas-mind-reading-movie-ai)\",\n  \"insights\": [\n    \"💡 *This technology could lead to non-invasive interfaces for controlling devices, greatly aiding people with motor disabilities.*\",\n    \"💡 *The ability to decode brain signals from video alone raises profound ethical and privacy concerns that need urgent discussion.*\",\n    \"💡 *Future applications might extend beyond simple actions to understanding complex thoughts or emotions from subtle external cues.*\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1136,
+        416
+      ],
+      "id": "138e158e-6fd3-46b7-8121-41dbccffacbf",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- Get All Data from Previous Nodes ---\n// Retrieves all items from the 'AI Agent1' node for text content.\nconst allItems = $('AI Agent1').all();\n// Retrieves all items from the 'Code3' node for image URLs.\nconst imageItems = $('Code3').all();\n\n// If there are no items, stop the workflow.\nif (allItems.length === 0) {\n  return []; // Return an empty array to stop execution.\n}\n\n// --- Prepare Email Subject ---\n// Creates a single, summary subject line for the digest.\nconst subject = `Your AI-Powered Digest: ${allItems.length} New Stories`;\n\n// --- Process Each Article into an HTML block ---\n// This section iterates through each item and generates its corresponding HTML.\nconst articlesHtml = allItems.map((item, index) => {\n  const aiData = item.json.output;\n  // Get the corresponding image URL from the 'Code3' node's data using the index.\n  const logoUrl = imageItems[index].json.extractedUrl;\n\n  // --- Process Key Insights for the current article ---\n  const insightsHtml = aiData.insights.map(insight => {\n    const formattedInsight = insight\n      .replace(/^💡\\s*/, '') // Removes any leading emoji\n      .replace(/\\*(.*?)\\*:/g, '<strong>$1:</strong>'); // Bolds text like *Title*:\n    return `<li style=\"padding-bottom: 8px;\">💡 ${formattedInsight}</li>`;\n  }).join('');\n\n  // Add a separator for all articles except the first one.\n  const separatorStyle = index > 0 ? 'padding-top: 30px; border-top: 2px solid #eeeeee;' : '';\n\n  // --- HTML for a single article card ---\n  // The image (<img>) width has been increased from 100 to 200.\n  return `\n    <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"${separatorStyle}\">\n      <tr>\n        <td style=\"padding-bottom: 10px;\">\n          <h2 style=\"font-family: Arial, Helvetica, sans-serif; font-size: 22px; font-weight: bold; color: #1a1a1a; margin: 0; text-align: center;\">\n            ${aiData.headline}\n          </h2>\n        </td>\n      </tr>\n      <tr>\n        <td align=\"center\" style=\"padding-top: 10px; padding-bottom: 20px;\">\n          <img src=\"${logoUrl}\" alt=\"Source Logo\" width=\"250\" style=\"display: block; max-width: 200px;\">\n        </td>\n      </tr>\n      <tr>\n        <td style=\"padding-bottom: 15px;\">\n          <p style=\"font-family: Arial, Helvetica, sans-serif; font-size: 16px; color: #555555; line-height: 1.6; margin: 0;\">\n            ${aiData.digest}\n          </p>\n        </td>\n      </tr>\n      <tr>\n        <td style=\"padding-bottom: 25px;\">\n          <h3 style=\"font-family: Arial, Helvetica, sans-serif; font-size: 18px; color: #333333; margin: 0; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;\">\n            Key Insights ✨\n          </h3>\n          <ul style=\"font-family: Arial, Helvetica, sans-serif; font-size: 16px; color: #555555; line-height: 1.6; margin-top: 10px; list-style-type: none; padding-left: 0;\">\n            ${insightsHtml}\n          </ul>\n        </td>\n      </tr>\n      <tr>\n        <td align=\"center\">\n          <a href=\"${aiData.source_line}\" target=\"_blank\" style=\"font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; background-color: #007bff; padding: 12px 25px; border-radius: 5px; display: inline-block; margin-bottom: 20px\">\n            Read Full Story\n          </a>\n        </td>\n      </tr>\n    </table>\n  `;\n}).join('');\n\n\n// --- Build the Main Email Body (HTML) ---\n// This main template wraps all the generated article blocks.\nconst body = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>${subject}</title>\n</head>\n<body style=\"margin: 0; padding: 0; width: 100%; background-color: #f4f4f4;\">\n    <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #f4f4f4;\">\n        <tr>\n            <td align=\"center\">\n                <table width=\"600\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\" style=\"max-width: 600px; width: 100%; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);\">\n                    <tr>\n                        <td style=\"padding: 25px 30px;\">\n                            <table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">\n                                <tr>\n                                    <td align=\"center\" style=\"padding-bottom: 20px;\">\n                                        <h1 style=\"font-family: Arial, Helvetica, sans-serif; font-size: 28px; font-weight: bold; color: #1a1a1a; margin: 0;\">\n                                            Your AI-Powered Digest\n                                        </h1>\n                                        <p style=\"font-family: Arial, Helvetica, sans-serif; font-size: 16px; color: #555555; margin-top: 5px;\">\n                                            Here are today's top ${allItems.length} stories.\n                                        </p>\n                                    </td>\n                                </tr>\n                            </table>\n\n                            ${articlesHtml}\n\n                        </td>\n                    </tr>\n                </table>\n                 <div style=\"height: 15px; line-height: 15px; font-size: 15px;\">&nbsp;</div>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>\n`;\n\n// --- Return the Final Object for the Email Node ---\n// This single object contains the compiled subject and HTML.\nreturn {\n  subject: subject,\n  html: body\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        144
+      ],
+      "id": "35938ebb-00c7-4000-9231-59a0d9529c5f",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "sendTo": "mikedi3493@bizmud.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1776,
+        144
+      ],
+      "id": "8e35488b-5dc4-44ca-80dc-266ceea1edaf",
+      "name": "Send a message1",
+      "webhookId": "5a695587-445c-4e8b-9ec6-36b1cc342ae5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "S9fPdegLIetszli1",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Publish\n# workflow-2\n",
+        "height": 704,
+        "width": 2208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -128
+      ],
+      "id": "4b089a42-2e37-42b7-b1b6-ce4e8d9afb4a",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM news\nWHERE \"date\" >= CURRENT_DATE AND \"date\" < CURRENT_DATE + interval '1 day';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        256
+      ],
+      "id": "0e24a21d-72e7-46e5-85aa-7bea4f27fe2a",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "Qzxa2iJP4glR5sg0",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "weekly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "daily",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "workflow 2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "daily": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query7": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "weekly": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8a3271e2-d2ea-4a6a-8fde-0368cc53a70a",
+  "meta": {
+    "instanceId": "6fc6a20ac007bf600be191bc305820c09bb3a136d25ee50c0351f435dca17fcf"
+  },
+  "id": "gIezdg9RjqjIYhaz",
+  "tags": []
+}
